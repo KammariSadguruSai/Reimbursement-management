@@ -8,6 +8,7 @@ import Approvals from './pages/Approvals.jsx';
 import Team from './pages/Team.jsx';
 import Settings from './pages/Settings.jsx';
 import SuperAdmin from './pages/SuperAdmin.jsx';
+import History from './pages/History.jsx';
 
 function App() {
   const { currentUser } = useStore();

@@ -2,7 +2,7 @@ import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useStore } from '../store.jsx';
 import {
   LayoutDashboard, Receipt, CheckSquare,
-  Users, Settings as SettingsIcon, LogOut, Shield
+  Users, Settings as SettingsIcon, LogOut, Shield, Clock
 } from 'lucide-react';
 
 export default function Layout() {
@@ -18,6 +18,7 @@ export default function Layout() {
     { to: '/',          icon: <LayoutDashboard size={18} />, label: 'Dashboard',   end: true,  roles: null },
     { to: '/expenses',  icon: <Receipt size={18} />,         label: 'My Expenses', end: false, roles: ['Employee'] },
     { to: '/approvals', icon: <CheckSquare size={18} />,     label: 'Approvals',     end: false, roles: ['Admin', 'Manager'] },
+    { to: '/history',   icon: <Clock size={18} />,           label: 'History',       end: false, roles: null },
     { to: '/team',      icon: <Users size={18} />,           label: 'Team',          end: false, roles: ['Admin', 'Manager'] },
     { to: '/settings',  icon: <SettingsIcon size={18} />,    label: 'Settings',      end: false, roles: ['Admin'] },
   ].filter(item => !item.roles || item.roles.includes(currentUser.role));
