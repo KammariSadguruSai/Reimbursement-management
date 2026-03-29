@@ -7,9 +7,11 @@ import Expenses from './pages/Expenses.jsx';
 import Approvals from './pages/Approvals.jsx';
 import Team from './pages/Team.jsx';
 import Settings from './pages/Settings.jsx';
+import SuperAdmin from './pages/SuperAdmin.jsx';
 
 function App() {
   const { currentUser } = useStore();
+  const isSuperAdmin = currentUser?.id === 'u_admin_master';
 
   if (!currentUser) {
     return (

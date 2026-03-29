@@ -2,12 +2,13 @@ import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useStore } from '../store.jsx';
 import {
   LayoutDashboard, Receipt, CheckSquare,
-  Users, Settings as SettingsIcon, LogOut
+  Users, Settings as SettingsIcon, LogOut, Shield
 } from 'lucide-react';
 
 export default function Layout() {
   const { currentUser, logout, companies, expenses, isSyncing } = useStore();
   const navigate = useNavigate();
+  const isSuperAdmin = currentUser?.id === 'u_admin_master';
 
   const company = companies.find(c => c.id === currentUser.company_id);
 
@@ -19,7 +20,8 @@ export default function Layout() {
     { to: '/approvals', icon: <CheckSquare size={18} />,     label: 'Approvals',     end: false, roles: ['Admin', 'Manager'] },
     { to: '/team',      icon: <Users size={18} />,           label: 'Team',          end: false, roles: ['Admin', 'Manager'] },
     { to: '/settings',  icon: <SettingsIcon size={18} />,    label: 'Settings',      end: false, roles: ['Admin'] },
-  ].filter(item => !item.roles || item.roles.includes(currentUser.role));
+    isSuperAdmin && { to: '/super-admin', icon: <Shield size={18} />, label: 'Platform Console', end: false, roles: ['Admin'] },
+  ].filter(item => item && (!item.roles || item.roles.includes(currentUser.role)));
 
   const initials = currentUser.name
     .split(' ')
