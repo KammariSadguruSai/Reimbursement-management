@@ -43,13 +43,22 @@ export default function Layout() {
           </div>
           <span style={{ fontSize: '0.9rem', fontWeight: 700 }}>{company?.name}</span>
         </div>
-        <div style={{
-          width: 28, height: 28, borderRadius: '50%',
-          background: 'var(--bg-tertiary)', color: 'var(--primary)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: '0.7rem', fontWeight: 700, border: '1px solid var(--border)'
-        }}>
-          {initials}
+        <div className="flex items-center gap-3">
+            <div style={{
+            width: 28, height: 28, borderRadius: '50%',
+            background: 'var(--bg-tertiary)', color: 'var(--primary)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: '0.7rem', fontWeight: 700, border: '1px solid var(--border)'
+            }}>
+            {initials}
+            </div>
+            <button 
+                onClick={handleLogout}
+                className="btn btn-icon btn-secondary"
+                style={{ width: 28, height: 28, padding: 0, minHeight: 'unset' }}
+            >
+                <LogOut size={14} className="text-danger" />
+            </button>
         </div>
       </div>
 
