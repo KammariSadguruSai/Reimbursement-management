@@ -190,7 +190,6 @@ export default function Approvals() {
         )}
       </div>
 
-      {/* Pending Actions */}
       <div className="card mb-6">
         <div className="flex items-center gap-2 mb-4">
           <Clock size={18} style={{ color: 'var(--warning)' }} />
@@ -210,7 +209,7 @@ export default function Approvals() {
                   <th>Employee</th>
                   <th>Description</th>
                   <th>Category</th>
-                  <th>Amount ({company?.default_currency})</th>
+                  <th>Amount</th>
                   <th>Date</th>
                   <th>Step</th>
                   <th>Action</th>
@@ -243,32 +242,33 @@ export default function Approvals() {
                       <td style={{ fontWeight: 600 }}>
                         {exp.currency} {Number(exp.amount).toFixed(2)}
                       </td>
-                    <td className="text-subtle text-sm">
-                      {exp.expense_date ? new Date(exp.expense_date).toLocaleDateString() : '—'}
-                    </td>
-                    <td>
-                      <span className="badge badge-warning" style={{ fontSize: '0.7rem' }}>
-                        {isManagerStep ? 'Direct Manager' : `Step ${(exp.sequence_step || 0) + 1}`}
-                      </span>
-                      <div className="text-[10px] text-muted-foreground mt-1">
-                        Awaiting: {approver?.name || 'Admin'}
-                      </div>
-                    </td>
-                    <td>
-                      <button 
-                        className={`btn btn-sm ${canAction ? 'btn-primary' : 'btn-secondary'}`} 
-                        onClick={() => setSelected(exp)}
-                      >
-                        {canAction ? 'Review' : 'View'}
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      )}
+                      <td className="text-subtle text-sm">
+                        {exp.expense_date ? new Date(exp.expense_date).toLocaleDateString() : '—'}
+                      </td>
+                      <td>
+                        <span className="badge badge-warning" style={{ fontSize: '0.7rem' }}>
+                          {isManagerStep ? 'Direct Manager' : `Step ${(exp.sequence_step || 0) + 1}`}
+                        </span>
+                        <div className="text-[10px] text-muted-foreground mt-1">
+                          Awaiting: {approver?.name || 'Admin'}
+                        </div>
+                      </td>
+                      <td>
+                        <button 
+                          className={`btn btn-sm ${canAction ? 'btn-primary' : 'btn-secondary'}`} 
+                          onClick={() => setSelected(exp)}
+                        >
+                          {canAction ? 'Review' : 'View'}
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
 
       {/* History */}
       {processedHistory.length > 0 && (
