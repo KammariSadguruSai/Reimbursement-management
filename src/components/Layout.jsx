@@ -59,7 +59,19 @@ export default function Layout() {
               }
             >
               {item.icon}
-              {item.label}
+              <span className="flex-1">{item.label}</span>
+              {item.label === 'Approvals' && (() => {
+                const count = expenses.filter(e => 
+                  e.status === 'Pending' && e.current_approver_id === currentUser.id
+                ).length;
+                return count > 0 ? (
+                  <span className="badge badge-danger" style={{ 
+                    fontSize: '0.65rem', padding: '1px 6px', borderRadius: '10px' 
+                  }}>
+                    {count}
+                  </span>
+                ) : null;
+              })()}
             </NavLink>
           ))}
         </div>
