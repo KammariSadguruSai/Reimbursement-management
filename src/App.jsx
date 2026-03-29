@@ -13,6 +13,16 @@ import History from './pages/History.jsx';
 function App() {
   const { currentUser, dbState, companies } = useStore();
 
+  const isSuperAdmin = currentUser?.id === 'u_admin_master';
+
+  if (!currentUser) {
+    return (
+      <Routes>
+        <Route path="*" element={<Auth />} />
+      </Routes>
+    );
+  }
+
   // Show a professional loading screen while the cloud DB initializes
   if (dbState === 'syncing' && companies.length === 0) {
     return (
@@ -28,16 +38,6 @@ function App() {
         </div>
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
-    );
-  }
-
-  const isSuperAdmin = currentUser?.id === 'u_admin_master';
-
-  if (!currentUser) {
-    return (
-      <Routes>
-        <Route path="*" element={<Auth />} />
-      </Routes>
     );
   }
 
