@@ -34,7 +34,7 @@ function UserModal({ onClose, editUser }) {
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
@@ -47,7 +47,7 @@ function UserModal({ onClose, editUser }) {
       onClose();
     } else {
       if (!form.password) { setError('Password is required.'); return; }
-      const result = createUser({
+      const result = await createUser({
         name:       form.name,
         email:      form.email,
         password:   form.password,

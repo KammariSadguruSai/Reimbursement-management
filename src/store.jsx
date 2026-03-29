@@ -273,9 +273,22 @@ export function StoreProvider({ children }) {
     return { success: true, user: newUser };
   };
 
-  const updateUser = (userId, updates) => {
+  const updateUser = async (userId, updates) => {
     setUsers(p => p.map(u => u.id === userId ? { ...u, ...updates } : u));
     if (currentUser?.id === userId) setCurrentUser(p => ({ ...p, ...updates }));
+    
+    try {
+      setDbState('syncing');
+      const user = users.find(u => u.id === userId);
+      if (user) {
+        const full = { ...user, ...updates };
+        await sql`UPDATE users SET name = ${full.name}, role = ${full.role}, manager_id = ${full.manager_id} WHERE id = ${userId}`;
+      }
+      setDbState('success');
+    } catch (e) {
+      console.error('Update User DB error:', e);
+      setDbState('error');
+    }
   };
 
   // ── Expense submission ────────────────────────────────────────────────────
