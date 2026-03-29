@@ -365,6 +365,34 @@ export function StoreProvider({ children }) {
     }));
   };
 
+  const reopenExpense = (expenseId) => {
+    setExpenses(p => p.map(expense => {
+      if (expense.id !== expenseId) return expense;
+      
+      // Look back at the last entry to see who is correcting it
+      const lastAction = expense.approval_history[expense.approval_history.length - 1];
+      
+      const updated = {
+        ...expense,
+        status: 'Pending',
+        // Set current approver back to whoever just acted, so they can correct it
+        current_approver_id: lastAction?.approver_id || expense.user_id,
+        approval_history: [
+          ...expense.approval_history,
+          {
+            approver_id: currentUser.id,
+            approver_name: currentUser.name,
+            action: 'Status Reset',
+            comments: 'Status correction applied.',
+            date: new Date().toISOString()
+          }
+        ]
+      };
+      sql`UPDATE expenses SET data = ${JSON.stringify(updated)} WHERE id = ${expenseId}`.catch(console.error);
+      return updated;
+    }));
+  };
+
   const updateRule = (companyId, updates) => {
     setApprovalRules(p => p.map(r => {
       if (r.company_id === companyId) {
@@ -401,7 +429,7 @@ export function StoreProvider({ children }) {
       currentUser, users, companies, expenses, approvalRules, fxCache, isSyncing, dbState,
       login, logout, signup, forgotPassword,
       createUser, updateUser,
-      submitExpense, approveExpense, rejectExpense,
+      submitExpense, approveExpense, rejectExpense, reopenExpense,
       updateRule,
       convertCurrency,
       clearDatabase: db.clear

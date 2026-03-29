@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useStore } from '../store.jsx';
 import { useToast } from '../components/Toast.jsx';
-import { CheckCircle, XCircle, Clock, AlertCircle } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, AlertCircle, RefreshCw } from 'lucide-react';
 import { format } from 'date-fns';
 
 const statusBadge = (status) => {
@@ -12,7 +12,7 @@ const statusBadge = (status) => {
 // ─── Approval Modal ───────────────────────────────────────────────────────────
 
 function ApprovalModal({ expense, onClose }) {
-  const { approveExpense, rejectExpense, users, companies, convertCurrency, currentUser } = useStore();
+  const { approveExpense, rejectExpense, reopenExpense, users, companies, convertCurrency, currentUser } = useStore();
   const toast = useToast();
   const [comments, setComments]   = useState('');
   const [converted, setConverted] = useState(null);
@@ -145,7 +145,8 @@ function ApprovalModal({ expense, onClose }) {
 // ─── Main Approvals Page ──────────────────────────────────────────────────────
 
 export default function Approvals() {
-  const { expenses, currentUser, users, companies } = useStore();
+  const { expenses, currentUser, users, companies, reopenExpense } = useStore();
+  const toast = useToast();
   const [selected, setSelected] = useState(null);
   const [historyFilter, setHistoryFilter] = useState('All');
 
@@ -307,7 +308,23 @@ export default function Approvals() {
                       <td className="text-subtle text-sm">
                         {exp.expense_date ? format(new Date(exp.expense_date), 'dd MMM yyyy') : '—'}
                       </td>
-                      <td>{statusBadge(exp.status)}</td>
+                      <td>
+                        <div className="flex items-center gap-2">
+                           {statusBadge(exp.status)}
+                           {(currentUser.role === 'Admin' || currentUser.role === 'Manager') && (
+                             <button 
+                               title="Correct status / Reopen"
+                               className="btn btn-icon btn-secondary btn-sm"
+                               onClick={() => {
+                                 reopenExpense(exp.id);
+                                 toast.info('Status reset to Pending for correction.');
+                               }}
+                             >
+                                <RefreshCw size={12} />
+                             </button>
+                           )}
+                        </div>
+                      </td>
                     </tr>
                   );
                 })}
