@@ -170,35 +170,13 @@ export default function Auth() {
         </form>
 
         {isLogin && (
-          <div className="mt-8">
-             <div className="p-4 rounded-lg bg-primary-transparent border border-primary/20 relative">
-              <div className="flex items-start gap-3">
-                <Info size={18} className="text-primary mt-0.5" />
-                <div>
-                  <p className="text-xs font-bold text-primary mb-1 uppercase tracking-wider">Demo / Admin Login</p>
-                  <p className="text-xs text-subtle mb-1">Use seeded credentials OR sign up for a new org:</p>
-                  <code className="text-[10px] block p-2 bg-black/20 rounded font-mono text-primary">
-                  Email: {import.meta.env.VITE_ADMIN_EMAIL || 'admin@expenseflow.com'}<br/>
-                  Pass: {import.meta.env.VITE_ADMIN_PASSWORD || 'admin'}
-                </code>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-4 flex justify-between items-center">
-            <button 
+          <div className="mt-8 text-center">
+             <button 
                 onClick={() => setMode('signup')}
-                className="auth-link text-xs"
+                className="auth-link text-sm font-medium"
               >
                 No workplace? Create one
               </button>
-              <button 
-                onClick={() => { if(confirm('Reset all data to defaults?')) clearDatabase(); }}
-                className="btn btn-sm text-[10px] text-muted-foreground hover:text-primary transition-colors flex items-center gap-1 opacity-60 hover:opacity-100"
-              >
-                <RefreshCw size={10} /> Reset DB
-              </button>
-            </div>
           </div>
         )}
 
