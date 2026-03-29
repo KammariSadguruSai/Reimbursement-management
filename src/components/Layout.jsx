@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 
 export default function Layout() {
-  const { currentUser, logout, companies, isSyncing } = useStore();
+  const { currentUser, logout, companies, expenses, isSyncing } = useStore();
   const navigate = useNavigate();
 
   const company = companies.find(c => c.id === currentUser.company_id);
