@@ -147,10 +147,17 @@ function UserModal({ onClose, editUser }) {
 // ─── Main Team Page ───────────────────────────────────────────────────────────
 
 export default function Team() {
-  const { users, currentUser, expenses } = useStore();
+  const { users, currentUser, expenses, approveUser } = useStore();
+  const toast = useToast();
   const [showModal, setShowModal] = useState(false);
   const [editUser, setEditUser]   = useState(null);
   const [search, setSearch]       = useState('');
+
+  const isSuperAdmin = currentUser.id === 'u_admin_master';
+  
+  const unapprovedGlobal = isSuperAdmin 
+    ? users.filter(u => !u.is_approved) 
+    : [];
 
   const teamMembers = users
     .filter(u => u.company_id === currentUser.company_id)
@@ -167,6 +174,11 @@ export default function Team() {
   const openEdit = (u) => { setEditUser(u); setShowModal(true); };
   const openAdd  = ()  => { setEditUser(null); setShowModal(true); };
 
+  const handleApprove = async (id, name) => {
+    await approveUser(id, 1);
+    toast.success(`Access approved for ${name}.`);
+  };
+
   return (
     <div>
       <div className="page-header">
@@ -182,6 +194,39 @@ export default function Team() {
           </button>
         )}
       </div>
+
+      {/* Super Admin: Workplace Approvals */}
+      {isSuperAdmin && unapprovedGlobal.length > 0 && (
+        <div className="card mb-6" style={{ border: '2px solid var(--primary)', background: 'var(--primary-transparent)' }}>
+          <h3 className="mb-4 flex items-center gap-2">
+            <Shield size={20} /> Pending Global Approvals
+          </h3>
+          <div className="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>New Admin</th>
+                  <th>Email</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {unapprovedGlobal.map(u => (
+                  <tr key={u.id}>
+                    <td style={{ fontWeight: 600 }}>{u.name}</td>
+                    <td>{u.email}</td>
+                    <td>
+                      <button className="btn btn-success btn-sm" onClick={() => handleApprove(u.id, u.name)}>
+                         Approve Access
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {/* Search */}
       <div className="mb-6">

@@ -212,7 +212,7 @@ export function StoreProvider({ children }) {
     const userId = generateId('u');
 
     const newCompany = { id: companyId, name: companyName, default_currency: currency || 'USD' };
-    const newUser = { id: userId, name, email, password, role: 'Admin', company_id: companyId, manager_id: null };
+    const newUser = { id: userId, name, email, password, role: 'Admin', company_id: companyId, manager_id: null, is_approved: 0 };
     const newRule = {
       company_id: companyId,
       sequence: [],
@@ -225,8 +225,8 @@ export function StoreProvider({ children }) {
     try {
       setDbState('syncing');
       await sql`INSERT INTO companies (id, name, default_currency) VALUES (${newCompany.id}, ${newCompany.name}, ${newCompany.default_currency})`;
-      await sql`INSERT INTO users (id, name, email, password, role, company_id, manager_id)
-                VALUES (${newUser.id}, ${newUser.name}, ${newUser.email}, ${newUser.password}, ${newUser.role}, ${newUser.company_id}, NULL)`;
+      await sql`INSERT INTO users (id, name, email, password, role, company_id, manager_id, is_approved)
+                VALUES (${newUser.id}, ${newUser.name}, ${newUser.email}, ${newUser.password}, ${newUser.role}, ${newUser.company_id}, NULL, 0)`;
       await sql`INSERT INTO rules (company_id, data) VALUES (${newRule.company_id}, ${JSON.stringify(newRule)})`;
       setDbState('success');
     } catch (e) {
@@ -256,13 +256,14 @@ export function StoreProvider({ children }) {
     const newUser = {
       ...userData,
       id: generateId('u'),
-      company_id: currentUser.company_id
+      company_id: currentUser.company_id,
+      is_approved: 1 // If admin adds them, they are pre-approved
     };
 
     try {
       setDbState('syncing');
-      await sql`INSERT INTO users (id, name, email, password, role, company_id, manager_id)
-                VALUES (${newUser.id}, ${newUser.name}, ${newUser.email}, ${newUser.password}, ${newUser.role}, ${newUser.company_id}, ${newUser.manager_id})`;
+      await sql`INSERT INTO users (id, name, email, password, role, company_id, manager_id, is_approved)
+                VALUES (${newUser.id}, ${newUser.name}, ${newUser.email}, ${newUser.password}, ${newUser.role}, ${newUser.company_id}, ${newUser.manager_id}, 1)`;
       setDbState('success');
     } catch (e) {
       console.error('Create User DB sync error:', e);
@@ -271,6 +272,17 @@ export function StoreProvider({ children }) {
 
     setUsers(p => [...p, newUser]);
     return { success: true, user: newUser };
+  };
+
+  const approveUser = async (userId, val = 1) => {
+    setUsers(p => p.map(u => u.id === userId ? { ...u, is_approved: val } : u));
+    try {
+      setDbState('syncing');
+      await sql`UPDATE users SET is_approved = ${val} WHERE id = ${userId}`;
+      setDbState('success');
+    } catch (e) {
+      setDbState('error');
+    }
   };
 
   const updateUser = async (userId, updates) => {
@@ -441,7 +453,7 @@ export function StoreProvider({ children }) {
     <StoreContext.Provider value={{
       currentUser, users, companies, expenses, approvalRules, fxCache, isSyncing, dbState,
       login, logout, signup, forgotPassword,
-      createUser, updateUser,
+      createUser, updateUser, approveUser,
       submitExpense, approveExpense, rejectExpense, reopenExpense,
       updateRule,
       convertCurrency,
