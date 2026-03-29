@@ -39,20 +39,20 @@ const generateId = (prefix = 'id') =>
   `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
 
 const DEFAULT_COMPANY_ID = 'co_master_1';
-const DEFAULT_COMPANY = { 
-  id: DEFAULT_COMPANY_ID, 
-  name: 'ExpenseFlow Org', 
-  default_currency: 'USD' 
+const DEFAULT_COMPANY = {
+  id: DEFAULT_COMPANY_ID,
+  name: 'ExpenseFlow Org',
+  default_currency: 'USD'
 };
 
-const DEFAULT_ADMIN = { 
-  id: 'u_admin_master', 
-  name: 'System Admin', 
-  email:    import.meta.env.VITE_ADMIN_EMAIL    || 'admin@expenseflow.com', 
-  password: import.meta.env.VITE_ADMIN_PASSWORD || 'admin', 
-  role: 'Admin', 
-  company_id: DEFAULT_COMPANY_ID, 
-  manager_id: null 
+const DEFAULT_ADMIN = {
+  id: 'u_admin_master',
+  name: 'System Admin',
+  email: import.meta.env.VITE_ADMIN_EMAIL || 'admin@expenseflow.com',
+  password: import.meta.env.VITE_ADMIN_PASSWORD || 'admin',
+  role: 'Admin',
+  company_id: DEFAULT_COMPANY_ID,
+  manager_id: null
 };
 
 const DEFAULT_RULE = {
@@ -108,70 +108,68 @@ function resolveNextApprover(expense, approvingUser, allApprovals, rule) {
 // ─── Provider ────────────────────────────────────────────────────────────────
 export function StoreProvider({ children }) {
   // Database initialization
-  const [currentUser,  setCurrentUser]  = useState(() => db.load('user', null));
-  const [users,        setUsers]        = useState(() => db.load('users', [DEFAULT_ADMIN]));
-  const [companies,    setCompanies]    = useState(() => db.load('companies', [DEFAULT_COMPANY]));
-  const [expenses,     setExpenses]     = useState(() => db.load('expenses', []));
+  const [currentUser, setCurrentUser] = useState(() => db.load('user', null));
+  const [users, setUsers] = useState(() => db.load('users', [DEFAULT_ADMIN]));
+  const [companies, setCompanies] = useState(() => db.load('companies', [DEFAULT_COMPANY]));
+  const [expenses, setExpenses] = useState(() => db.load('expenses', []));
   const [approvalRules, setApprovalRules] = useState(() => db.load('rules', [DEFAULT_RULE]));
-  const [fxCache,      setFxCache]      = useState({});
-  const [isSyncing,    setIsSyncing]    = useState(false);
-  const [dbState,      setDbState]      = useState('idle'); // idle | syncing | success | error
+  const [fxCache, setFxCache] = useState({});
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [dbState, setDbState] = useState('idle'); // idle | syncing | success | error
 
   // ── Unified Database Synchronization ──
   useEffect(() => {
     setIsSyncing(true);
-    db.save('user',      currentUser);
-    db.save('users',     users);
+    db.save('user', currentUser);
+    db.save('users', users);
     db.save('companies', companies);
-    db.save('expenses',  expenses);
-    db.save('rules',     approvalRules);
-    
+    db.save('expenses', expenses);
+    db.save('rules', approvalRules);
+
     // Artificial latency for "Database Sync" effect
     const t = setTimeout(() => setIsSyncing(false), 300);
     return () => clearTimeout(t);
   }, [currentUser, users, companies, expenses, approvalRules]);
 
-  // ── Postgres / Neon Initialization ──
+  // ── Postgres / Neon Initialization & Sync ──
   useEffect(() => {
-    const initDb = async () => {
+    const initAndSync = async () => {
       try {
         setDbState('syncing');
-        // Ensure Users Table
-        await sql`CREATE TABLE IF NOT EXISTS users (
-          id TEXT PRIMARY KEY,
-          name TEXT,
-          email TEXT UNIQUE,
-          password TEXT,
-          role TEXT,
-          company_id TEXT,
-          manager_id TEXT
-        )`;
-        // Seed Master Admin if not exists
+        // 1. Ensure Tables
+        await sql`CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, name TEXT, email TEXT UNIQUE, password TEXT, role TEXT, company_id TEXT, manager_id TEXT)`;
         await sql`INSERT INTO users (id, name, email, password, role, company_id, manager_id)
                   VALUES (${DEFAULT_ADMIN.id}, ${DEFAULT_ADMIN.name}, ${DEFAULT_ADMIN.email}, ${DEFAULT_ADMIN.password}, ${DEFAULT_ADMIN.role}, ${DEFAULT_ADMIN.company_id}, NULL)
                   ON CONFLICT (email) DO NOTHING`;
-        
-        // Ensure Companies Table
-        await sql`CREATE TABLE IF NOT EXISTS companies (
-          id TEXT PRIMARY KEY,
-          name TEXT,
-          default_currency TEXT
-        )`;
+
+        await sql`CREATE TABLE IF NOT EXISTS companies (id TEXT PRIMARY KEY, name TEXT, default_currency TEXT)`;
         await sql`INSERT INTO companies (id, name, default_currency)
                   VALUES (${DEFAULT_COMPANY.id}, ${DEFAULT_COMPANY.name}, ${DEFAULT_COMPANY.default_currency})
                   ON CONFLICT (id) DO NOTHING`;
 
-        // Ensure Expenses & Rules
         await sql`CREATE TABLE IF NOT EXISTS expenses (id TEXT PRIMARY KEY, data JSONB)`;
         await sql`CREATE TABLE IF NOT EXISTS rules (company_id TEXT PRIMARY KEY, data JSONB)`;
 
+        // 2. Fetch Latest State
+        const [dbUsers, dbCos, dbExps, dbRules] = await Promise.all([
+          sql`SELECT * FROM users`,
+          sql`SELECT * FROM companies`,
+          sql`SELECT * FROM expenses`,
+          sql`SELECT * FROM rules`
+        ]);
+
+        if (dbUsers.length > 0) setUsers(dbUsers);
+        if (dbCos.length > 0) setCompanies(dbCos);
+        if (dbExps.length > 0) setExpenses(dbExps.map(r => r.data));
+        if (dbRules.length > 0) setApprovalRules(dbRules.map(r => r.data));
+
         setDbState('success');
       } catch (e) {
-        console.error('Postgres Init Failed:', e);
+        console.error('Postgres Sync Failed:', e);
         setDbState('error');
       }
     };
-    initDb();
+    initAndSync();
   }, []);
 
   // ── Auth ──────────────────────────────────────────────────────────────────
@@ -186,11 +184,11 @@ export function StoreProvider({ children }) {
         setDbState('success');
         return { success: true };
       }
-      
+
       // Fallback to local
       const user = users.find(u => u.email?.toLowerCase() === email?.toLowerCase() && u.password === password);
       if (!user) { setDbState('error'); return { success: false, error: 'Invalid email or password.' }; }
-      
+
       setCurrentUser(user);
       setDbState('success');
       return { success: true };
@@ -211,11 +209,11 @@ export function StoreProvider({ children }) {
       return { success: false, error: 'An account with this email already exists.' };
 
     const companyId = generateId('co');
-    const userId   = generateId('u');
+    const userId = generateId('u');
 
     const newCompany = { id: companyId, name: companyName, default_currency: currency || 'USD' };
-    const newUser    = { id: userId, name, email, password, role: 'Admin', company_id: companyId, manager_id: null };
-    const newRule    = {
+    const newUser = { id: userId, name, email, password, role: 'Admin', company_id: companyId, manager_id: null };
+    const newRule = {
       company_id: companyId,
       sequence: [],
       type: 'standard',
@@ -254,7 +252,7 @@ export function StoreProvider({ children }) {
   const createUser = async (userData) => {
     if (users.some(u => u.email?.toLowerCase() === userData.email?.toLowerCase()))
       return { success: false, error: 'Email already in use.' };
-    
+
     const newUser = {
       ...userData,
       id: generateId('u'),
@@ -267,8 +265,8 @@ export function StoreProvider({ children }) {
                 VALUES (${newUser.id}, ${newUser.name}, ${newUser.email}, ${newUser.password}, ${newUser.role}, ${newUser.company_id}, ${newUser.manager_id})`;
       setDbState('success');
     } catch (e) {
-       console.error('Create User DB sync error:', e);
-       setDbState('error');
+      console.error('Create User DB sync error:', e);
+      setDbState('error');
     }
 
     setUsers(p => [...p, newUser]);
@@ -303,8 +301,8 @@ export function StoreProvider({ children }) {
       await sql`INSERT INTO expenses (id, data) VALUES (${newExpense.id}, ${JSON.stringify(newExpense)})`;
       setDbState('success');
     } catch (e) {
-       console.error('Submit Expense DB sync error:', e);
-       setDbState('error');
+      console.error('Submit Expense DB sync error:', e);
+      setDbState('error');
     }
 
     setExpenses(p => [...p, newExpense]);
@@ -324,7 +322,7 @@ export function StoreProvider({ children }) {
         date: new Date().toISOString()
       };
       const allApprovals = [...expense.approval_history, newHistoryEntry];
-      
+
       if (currentUser.role === 'Admin') {
         const updated = { ...expense, status: 'Approved', current_approver_id: null, approval_history: allApprovals };
         sql`UPDATE expenses SET data = ${JSON.stringify(updated)} WHERE id = ${expenseId}`.catch(console.error);
@@ -368,13 +366,21 @@ export function StoreProvider({ children }) {
   };
 
   const updateRule = (companyId, updates) => {
-    setApprovalRules(p => p.map(r => r.company_id === companyId ? { ...r, ...updates } : r));
+    setApprovalRules(p => p.map(r => {
+      if (r.company_id === companyId) {
+        const updated = { ...r, ...updates };
+        sql`INSERT INTO rules (company_id, data) VALUES (${companyId}, ${JSON.stringify(updated)})
+            ON CONFLICT (company_id) DO UPDATE SET data = ${JSON.stringify(updated)}`.catch(console.error);
+        return updated;
+      }
+      return r;
+    }));
   };
 
   const convertCurrency = useCallback(async (amount, fromCurrency, toCurrency) => {
     if (!fromCurrency || !toCurrency || fromCurrency === toCurrency) return Number(amount);
     const base = fromCurrency.toUpperCase();
-    const to   = toCurrency.toUpperCase();
+    const to = toCurrency.toUpperCase();
     const cached = fxCache[base];
     const now = Date.now();
     if (cached && now - cached.fetchedAt < 3600000 && cached.rates[to]) {

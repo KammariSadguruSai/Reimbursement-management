@@ -151,11 +151,10 @@ export default function Approvals() {
 
   const company = companies.find(c => c.id === currentUser.company_id);
 
-  // Expenses pending THIS user's action
+  // Expenses pending in this company
   const pendingApprovals = expenses.filter(e =>
     e.company_id === currentUser.company_id &&
-    e.status === 'Pending' &&
-    (e.current_approver_id === currentUser.id || currentUser.role === 'Admin')
+    e.status === 'Pending'
   ).sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
 
   // History visibility: Admin/Manager see all org history, Employee isn't on this page
@@ -220,7 +219,10 @@ export default function Approvals() {
               <tbody>
                 {pendingApprovals.map(exp => {
                   const submitter = users.find(u => u.id === exp.user_id);
+                  const approver = users.find(u => u.id === exp.current_approver_id);
                   const isManagerStep = exp.sequence_step === -1;
+                  const canAction = exp.current_approver_id === currentUser.id || currentUser.role === 'Admin';
+
                   return (
                     <tr key={exp.id}>
                       <td>
@@ -248,13 +250,16 @@ export default function Approvals() {
                         <span className="badge badge-warning" style={{ fontSize: '0.7rem' }}>
                           {isManagerStep ? 'Direct Manager' : `Step ${(exp.sequence_step || 0) + 1}`}
                         </span>
-                        {currentUser.role === 'Admin' && exp.current_approver_id !== currentUser.id && (
-                          <div className="text-xs text-danger font-semibold mt-1">Admin Override</div>
-                        )}
+                        <div className="text-[10px] text-muted-foreground mt-1">
+                          Awaiting: {approver?.name || 'Admin'}
+                        </div>
                       </td>
                       <td>
-                        <button className="btn btn-primary btn-sm" onClick={() => setSelected(exp)}>
-                          Review
+                        <button 
+                          className={`btn btn-sm ${canAction ? 'btn-primary' : 'btn-secondary'}`} 
+                          onClick={() => setSelected(exp)}
+                        >
+                          {canAction ? 'Review' : 'View'}
                         </button>
                       </td>
                     </tr>
