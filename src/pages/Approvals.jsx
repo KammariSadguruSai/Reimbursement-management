@@ -269,44 +269,43 @@ export default function Approvals() {
           </table>
         </div>
       )}
-    </div>
 
-    {/* History */}
-    {processedHistory.length > 0 && (
-      <div className="card">
-        <div className="flex items-center justify-between mb-4">
-          <h3>Processed History</h3>
-          <div className="flex gap-2">
-            {['All', 'Approved', 'Rejected'].map(f => (
-              <button key={f} onClick={() => setHistoryFilter(f)}
-                className={`btn btn-sm ${historyFilter === f ? 'btn-primary' : 'btn-secondary'}`}>
-                {f}
-              </button>
-            ))}
+      {/* History */}
+      {processedHistory.length > 0 && (
+        <div className="card mt-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3>Processed History</h3>
+            <div className="flex gap-2">
+              {['All', 'Approved', 'Rejected'].map(f => (
+                <button key={f} onClick={() => setHistoryFilter(f)}
+                  className={`btn btn-sm ${historyFilter === f ? 'btn-primary' : 'btn-secondary'}`}>
+                  {f}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
-        <div className="table-container">
-          <table>
-            <thead>
-              <tr>
-                <th>Employee</th>
-                <th>Description</th>
-                <th>Amount</th>
-                <th>Date</th>
-                <th>Final Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredHistory.map(exp => {
-                const submitter = users.find(u => u.id === exp.user_id);
-                return (
-                  <tr key={exp.id}>
-                    <td style={{ fontWeight: 500 }}>{submitter?.name || '—'}</td>
-                    <td>{exp.description}</td>
-                    <td>{exp.currency} {Number(exp.amount).toFixed(2)}</td>
-                    <td className="text-subtle text-sm">
-                      {exp.expense_date ? new Date(exp.expense_date).toLocaleDateString() : '—'}
-                    </td>
+          <div className="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Employee</th>
+                  <th>Description</th>
+                  <th>Amount</th>
+                  <th>Date</th>
+                  <th>Final Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredHistory.map(exp => {
+                  const submitter = users.find(u => u.id === exp.user_id);
+                  return (
+                    <tr key={exp.id}>
+                      <td style={{ fontWeight: 500 }}>{submitter?.name || '—'}</td>
+                      <td>{exp.description}</td>
+                      <td>{exp.currency} {Number(exp.amount).toFixed(2)}</td>
+                      <td className="text-subtle text-sm">
+                        {exp.expense_date ? new Date(exp.expense_date).toLocaleDateString() : '—'}
+                      </td>
                       <td>
                         <div className="flex items-center gap-2">
                            {statusBadge(exp.status)}
