@@ -30,7 +30,29 @@ export default function Layout() {
 
   return (
     <div className="app-container">
-      {/* ── Sidebar ── */}
+      {/* ── Mobile Header ── */}
+      <div className="mobile-top-bar">
+        <div className="flex items-center gap-2">
+          <div style={{
+            width: 28, height: 28, borderRadius: '6px',
+            background: 'linear-gradient(135deg, var(--primary), #8b5cf6)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center'
+          }}>
+            <Receipt size={14} style={{ color: 'white' }} />
+          </div>
+          <span style={{ fontSize: '0.9rem', fontWeight: 700 }}>{company?.name}</span>
+        </div>
+        <div style={{
+          width: 28, height: 28, borderRadius: '50%',
+          background: 'var(--bg-tertiary)', color: 'var(--primary)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: '0.7rem', fontWeight: 700, border: '1px solid var(--border)'
+        }}>
+          {initials}
+        </div>
+      </div>
+
+      {/* ── Desktop Sidebar ── */}
       <nav className="sidebar">
         {/* Brand */}
         <div style={{ padding: '0 1.5rem 1.25rem', borderBottom: '1px solid var(--border)' }}>
@@ -130,6 +152,39 @@ export default function Layout() {
       <main className="main-content">
         <Outlet />
       </main>
+
+      {/* ── Mobile Navigation ── */}
+      <nav className="mobile-nav">
+        {navItems.map(item => (
+          <NavLink
+            key={item.to}
+            to={item.to}
+            end={item.end}
+            className={({ isActive }) => `mobile-nav-link ${isActive ? 'active' : ''}`}
+          >
+            <div style={{ position: 'relative' }}>
+              {item.icon}
+              {item.label === 'Approvals' && (() => {
+                const count = expenses.filter(e => 
+                  e.status === 'Pending' && e.current_approver_id === currentUser.id
+                ).length;
+                return count > 0 ? (
+                  <div style={{
+                    position: 'absolute', top: -5, right: -10,
+                    background: 'var(--danger)', color: 'white',
+                    fontSize: '0.6rem', padding: '1px 4px', borderRadius: '10px',
+                    fontWeight: 700, minWidth: 16, textAlign: 'center'
+                  }}>
+                    {count}
+                  </div>
+                ) : null;
+              })()}
+            </div>
+            <span>{item.label}</span>
+          </NavLink>
+        ))}
+        {/* Simple logout trigger for mobile too? Maybe just in top bar? */}
+      </nav>
     </div>
   );
 }
