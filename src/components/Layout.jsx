@@ -97,18 +97,19 @@ export default function Layout() {
           >
             <LogOut size={15} /> Logout
           </button>
+        </div>
 
-          {/* Database Info */}
-          <div className="flex items-center justify-between text-xs text-muted" style={{ padding: '0 0.5rem' }}>
+        <div className="sidebar-footer" style={{ padding: '0 1rem 1rem' }}>
+          <div className="flex items-center justify-between text-[10px] text-muted-foreground uppercase tracking-widest font-bold px-1 mb-2">
             <div className="flex items-center gap-2">
-              <div style={{ 
-                width: 6, height: 6, borderRadius: '50%', 
-                backgroundColor: isSyncing ? 'var(--warning)' : 'var(--success)',
-                boxShadow: isSyncing ? '0 0 8px var(--warning)' : 'none'
-              }}></div>
-              <span>{isSyncing ? 'Syncing to DB…' : 'Database Persistent'}</span>
+              <div style={{
+                width: 6, height: 6, borderRadius: '50%',
+                backgroundColor: isSyncing ? '#fbbf24' : '#10b981',
+                boxShadow: !isSyncing ? '0 0 8px #10b981' : 'none'
+              }} />
+              <span>{isSyncing ? 'Syncing...' : 'Cloud Sync'}</span>
             </div>
-            <span>v1.0.4</span>
+            <span>v1.0.6</span>
           </div>
         </div>
       </nav>

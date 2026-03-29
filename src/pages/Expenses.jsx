@@ -48,25 +48,41 @@ function OCRScanner({ onExtracted }) {
       setStatusText('Done!');
 
       const text = result.data.text;
+      const lowerText = text.toLowerCase();
 
-      // Heuristic extraction
-      const amountMatch =
-        text.match(/(?:total|amount|grand total|subtotal)[^\d]*\$?\s*(\d[\d,]*\.?\d{0,2})/i) ||
-        text.match(/\$\s*(\d[\d,]*\.\d{2})/) ||
-        text.match(/(\d{1,4}[.,]\d{2})/);
+      // Better Amount Extraction
+      const amounts = text.match(/(\d{1,4}[.,]\d{2})/g) || [];
+      const parsedAmounts = amounts.map(a => parseFloat(a.replace(',', ''))).filter(n => !isNaN(n));
+      const maxAmount = parsedAmounts.length > 0 ? Math.max(...parsedAmounts) : '';
+      
+      const kwordAmountMatch = 
+        text.match(/(?:total|amount|paid|sum|due|net)[^\d]*\$?\s*(\d[\d,]*\.?\d{0,2})/i);
+      
+      const finalAmount = kwordAmountMatch ? kwordAmountMatch[1].replace(',', '') : (maxAmount ? maxAmount.toString() : '');
 
+      // Better Date Extraction
       const dateMatch =
         text.match(/\b(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})\b/) ||
-        text.match(/\b(\w+ \d{1,2},? \d{4})\b/i);
+        text.match(/\b(\d{4}[\/\-\.]\d{1,2}[\/\-\.]\d{1,2})\b/) ||
+        text.match(/\b(\w{3,9} \d{1,2},? \d{4})\b/i);
 
-      // Try to get merchant name from first non-empty lines
-      const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
-      const merchantName = lines.slice(0, 2).join(' ').slice(0, 60);
+      // Auto-Category Detection
+      let detectedCategory = CATEGORIES[0]; // Default
+      if (lowerText.includes('restaurant') || lowerText.includes('food') || lowerText.includes('meal') || lowerText.includes('cafe') || lowerText.includes('dine')) detectedCategory = 'Meals';
+      else if (lowerText.includes('hotel') || lowerText.includes('inn') || lowerText.includes('stay') || lowerText.includes('room')) detectedCategory = 'Accommodation';
+      else if (lowerText.includes('uber') || lowerText.includes('taxi') || lowerText.includes('flight') || lowerText.includes('air') || lowerText.includes('train')) detectedCategory = 'Travel';
+      else if (lowerText.includes('staples') || lowerText.includes('office') || lowerText.includes('paper') || lowerText.includes('ink')) detectedCategory = 'Office Supplies';
+      else if (lowerText.includes('doctor') || lowerText.includes('pharmacy') || lowerText.includes('hospital') || lowerText.includes('medical')) detectedCategory = 'Medical';
+
+      // Merchant Name Heuristic
+      const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 3 && !/[0-9]/.test(l[0]));
+      const merchantName = lines.length > 0 ? lines[0].slice(0, 50) : '';
 
       onExtracted({
-        amount:       amountMatch ? amountMatch[1].replace(',', '') : '',
-        expense_date: dateMatch   ? dateMatch[1] : new Date().toISOString().slice(0, 10),
+        amount:       finalAmount,
+        expense_date: dateMatch   ? (dateMatch[1] || dateMatch[0]) : new Date().toISOString().slice(0, 10),
         description:  merchantName || text.slice(0, 80).replace(/\n/g, ' ').trim(),
+        category:     detectedCategory,
         ocr_raw:      text
       });
 
@@ -236,7 +252,8 @@ function ExpenseModal({ onClose }) {
       ...f,
       amount:       extracted.amount || f.amount,
       description:  extracted.description || f.description,
-      expense_date: extracted.expense_date || f.expense_date
+      expense_date: extracted.expense_date || f.expense_date,
+      category:     extracted.category || f.category
     }));
   };
 
