@@ -303,6 +303,21 @@ export function StoreProvider({ children }) {
     }
   };
 
+  const deleteUser = async (userId) => {
+    if (currentUser?.id === userId) return { success: false, error: 'Cannot delete yourself.' };
+    setUsers(p => p.filter(u => u.id !== userId));
+    try {
+      setDbState('syncing');
+      await sql`DELETE FROM users WHERE id = ${userId}`;
+      setDbState('success');
+      return { success: true };
+    } catch (e) {
+      console.error('Delete User DB error:', e);
+      setDbState('error');
+      return { success: false, error: 'Cloud sync failed.' };
+    }
+  };
+
   // ── Expense submission ────────────────────────────────────────────────────
   const submitExpense = async (expenseData) => {
     const submitter = users.find(u => u.id === currentUser.id) || currentUser;
