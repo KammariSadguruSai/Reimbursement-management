@@ -226,7 +226,7 @@ export function StoreProvider({ children }) {
       setDbState('syncing');
       await sql`INSERT INTO companies (id, name, default_currency) VALUES (${newCompany.id}, ${newCompany.name}, ${newCompany.default_currency})`;
       await sql`INSERT INTO users (id, name, email, password, role, company_id, manager_id, is_approved)
-                VALUES (${newUser.id}, ${newUser.name}, ${newUser.email}, ${newUser.password}, ${newUser.role}, ${newUser.company_id}, NULL, 0)`;
+                VALUES (${newUser.id}, ${newUser.name}, ${newUser.email}, ${newUser.password}, ${newUser.role}, ${newUser.company_id}, NULL, 1)`;
       await sql`INSERT INTO rules (company_id, data) VALUES (${newRule.company_id}, ${JSON.stringify(newRule)})`;
       setDbState('success');
     } catch (e) {

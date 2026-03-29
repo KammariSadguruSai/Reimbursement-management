@@ -134,10 +134,10 @@ export default function Dashboard() {
         <div>
           <h2>
             Good {new Date().getHours() < 12 ? 'morning' : new Date().getHours() < 17 ? 'afternoon' : 'evening'},{' '}
-            {currentUser.name.split(' ')[0]} 👋
+            {(currentUser?.name || 'User').split(' ')[0]} 👋
           </h2>
           <p className="text-subtle text-sm mt-2">
-            <span className="badge badge-info" style={{ marginRight: '0.5rem' }}>{currentUser.role}</span>
+            <span className="badge badge-info" style={{ marginRight: '0.5rem' }}>{currentUser?.role}</span>
             {company?.name} · {baseCurrency}
           </p>
         </div>
@@ -221,23 +221,28 @@ export default function Dashboard() {
                 </tr>
               </thead>
               <tbody>
-                {recentExpenses.map(exp => {
-                  const submitter = users.find(u => u.id === exp.user_id);
-                  return (
-                    <tr key={exp.id}>
-                      {!isEmployee && <td style={{ fontWeight: 500 }}>{submitter?.name || '—'}</td>}
-                      <td>{exp.description}</td>
-                      <td><span className="badge badge-info">{exp.category}</span></td>
-                      <td style={{ fontWeight: 600 }}>
-                        {exp.currency} {Number(exp.amount).toFixed(2)}
-                      </td>
-                      <td className="text-subtle text-sm">
-                        {exp.expense_date ? format(new Date(exp.expense_date), 'dd MMM yyyy') : '—'}
-                      </td>
-                      <td>{statusBadge(exp.status)}</td>
-                    </tr>
-                  );
-                })}
+                    {recentExpenses.map(exp => {
+                      const submitter = users.find(u => u.id === exp.user_id);
+                      let displayDate = '—';
+                      try {
+                        if (exp.expense_date) displayDate = new Date(exp.expense_date).toLocaleDateString();
+                      } catch (e) { console.error('Date error:', e); }
+
+                      return (
+                        <tr key={exp.id}>
+                          {!isEmployee && <td style={{ fontWeight: 500 }}>{submitter?.name || '—'}</td>}
+                          <td>{exp.description}</td>
+                          <td><span className="badge badge-info">{exp.category}</span></td>
+                          <td style={{ fontWeight: 600 }}>
+                            {exp.currency} {Number(exp.amount).toFixed(2)}
+                          </td>
+                          <td className="text-subtle text-sm">
+                            {displayDate}
+                          </td>
+                          <td>{statusBadge(exp.status)}</td>
+                        </tr>
+                      );
+                    })}
               </tbody>
             </table>
           </div>
