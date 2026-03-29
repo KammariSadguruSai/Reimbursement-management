@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useStore } from '../store.jsx';
 import { useToast } from '../components/Toast.jsx';
-import { LogIn, UserPlus, Building2, Coins, KeyRound, ArrowLeft } from 'lucide-react';
+import { LogIn, Coins, KeyRound, ArrowLeft, Info, RefreshCw, Building2, UserPlus } from 'lucide-react';
 
 export default function Auth() {
   const [mode, setMode]       = useState('login'); // login | signup | forgot
-  const { login, signup, forgotPassword } = useStore();
+  const { login, signup, forgotPassword, clearDatabase } = useStore();
   const toast                 = useToast();
   const [loading, setLoading] = useState(false);
 
@@ -42,11 +42,11 @@ export default function Auth() {
         })
         .catch(() => {
           const fallback = [
-            { code: 'USD', label: 'USD – US Dollar (United States)' },
-            { code: 'EUR', label: 'EUR – Euro (European Union)' },
-            { code: 'GBP', label: 'GBP – British Pound (United Kingdom)' },
-            { code: 'INR', label: 'INR – Indian Rupee (India)' },
-            { code: 'JPY', label: 'JPY – Japanese Yen (Japan)' },
+            { code: 'USD', label: 'USD – US Dollar' },
+            { code: 'EUR', label: 'EUR – Euro' },
+            { code: 'GBP', label: 'GBP – British Pound' },
+            { code: 'INR', label: 'INR – Indian Rupee' },
+            { code: 'JPY', label: 'JPY – Japanese Yen' },
           ];
           setCurrencies(fallback);
           setCurrency('USD');
@@ -60,11 +60,18 @@ export default function Auth() {
     setLoading(true);
     if (mode === 'login') {
       const r = login(email, password);
-      if (!r.success) { toast.error(r.error); setLoading(false); }
+      if (!r.success) { 
+        toast.error(r.error); 
+        setLoading(false); 
+      }
     } else if (mode === 'signup') {
       const r = signup(name, email, password, companyName, currency);
-      if (!r.success) { toast.error(r.error); setLoading(false); }
-      else toast.success('Workspace created! Welcome to ExpenseFlow.');
+      if (!r.success) { 
+        toast.error(r.error); 
+        setLoading(false); 
+      } else {
+        toast.success('Workspace created! Welcome to ExpenseFlow.');
+      }
     } else if (mode === 'forgot') {
       const r = forgotPassword(email);
       if (r.success) {
@@ -116,7 +123,7 @@ export default function Auth() {
               <div className="form-group mb-0">
                 <label className="form-label">Base Currency</label>
                 {loadingCurr ? (
-                  <div className="form-input text-muted">Loading currencies…</div>
+                  <div className="form-input text-muted text-xs">Loading currencies…</div>
                 ) : (
                   <select className="form-select" value={currency} onChange={e => setCurrency(e.target.value)} required>
                     {currencies.map(c => <option key={c.code} value={c.code}>{c.label}</option>)}
@@ -162,20 +169,44 @@ export default function Auth() {
           </button>
         </form>
 
+        {isLogin && (
+          <div className="mt-8">
+             <div className="p-4 rounded-lg bg-primary-transparent border border-primary/20 relative">
+              <div className="flex items-start gap-3">
+                <Info size={18} className="text-primary mt-0.5" />
+                <div>
+                  <p className="text-xs font-bold text-primary mb-1 uppercase tracking-wider">Demo / Admin Login</p>
+                  <p className="text-xs text-subtle mb-1">Use seeded credentials OR sign up for a new org:</p>
+                  <code className="text-[10px] block p-2 bg-black/20 rounded font-mono text-primary">
+                  Email: {import.meta.env.VITE_ADMIN_EMAIL || 'admin@expenseflow.com'}<br/>
+                  Pass: {import.meta.env.VITE_ADMIN_PASSWORD || 'admin'}
+                </code>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-4 flex justify-between items-center">
+            <button 
+                onClick={() => setMode('signup')}
+                className="auth-link text-xs"
+              >
+                No workplace? Create one
+              </button>
+              <button 
+                onClick={() => { if(confirm('Reset all data to defaults?')) clearDatabase(); }}
+                className="btn btn-sm text-[10px] text-muted-foreground hover:text-primary transition-colors flex items-center gap-1 opacity-60 hover:opacity-100"
+              >
+                <RefreshCw size={10} /> Reset DB
+              </button>
+            </div>
+          </div>
+        )}
+
         <div className="text-center mt-6 text-sm">
-          {isForgot ? (
+          {!isLogin && (
             <span className="auth-link flex items-center justify-center gap-1" onClick={() => setMode('login')}>
               <ArrowLeft size={14} /> Back to Sign in
             </span>
-          ) : (
-            <>
-              <span className="text-subtle">
-                {isLogin ? "Don't have a workspace? " : 'Already have a workspace? '}
-              </span>
-              <span className="auth-link" onClick={() => setMode(isLogin ? 'signup' : 'login')}>
-                {isLogin ? 'Sign up' : 'Sign in'}
-              </span>
-            </>
           )}
         </div>
       </div>

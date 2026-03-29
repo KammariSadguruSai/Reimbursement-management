@@ -36,6 +36,32 @@ const db = {
 const generateId = (prefix = 'id') =>
   `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
 
+const DEFAULT_COMPANY_ID = 'co_master_1';
+const DEFAULT_COMPANY = { 
+  id: DEFAULT_COMPANY_ID, 
+  name: 'ExpenseFlow Org', 
+  default_currency: 'USD' 
+};
+
+const DEFAULT_ADMIN = { 
+  id: 'u_admin_master', 
+  name: 'System Admin', 
+  email:    import.meta.env.VITE_ADMIN_EMAIL    || 'admin@expenseflow.com', 
+  password: import.meta.env.VITE_ADMIN_PASSWORD || 'admin', 
+  role: 'Admin', 
+  company_id: DEFAULT_COMPANY_ID, 
+  manager_id: null 
+};
+
+const DEFAULT_RULE = {
+  company_id: DEFAULT_COMPANY_ID,
+  sequence: [],
+  type: 'standard',
+  percentage: 60,
+  specific_approver_id: null,
+  requiresManagerApproval: true
+};
+
 // ─── Approval routing logic ──────────────────────────────────────────────────
 function resolveFirstApprover(expense, submitterUser, allUsers, rule) {
   // If the rule requires manager approval AND employee has a manager, start there
@@ -81,10 +107,10 @@ function resolveNextApprover(expense, approvingUser, allApprovals, rule) {
 export function StoreProvider({ children }) {
   // Database initialization
   const [currentUser,  setCurrentUser]  = useState(() => db.load('user', null));
-  const [users,        setUsers]        = useState(() => db.load('users', []));
-  const [companies,    setCompanies]    = useState(() => db.load('companies', []));
+  const [users,        setUsers]        = useState(() => db.load('users', [DEFAULT_ADMIN]));
+  const [companies,    setCompanies]    = useState(() => db.load('companies', [DEFAULT_COMPANY]));
   const [expenses,     setExpenses]     = useState(() => db.load('expenses', []));
-  const [approvalRules, setApprovalRules] = useState(() => db.load('rules', []));
+  const [approvalRules, setApprovalRules] = useState(() => db.load('rules', [DEFAULT_RULE]));
   const [fxCache,      setFxCache]      = useState({});
   const [isSyncing,    setIsSyncing]    = useState(false);
 
@@ -164,11 +190,6 @@ export function StoreProvider({ children }) {
 
   // ── Expense submission ────────────────────────────────────────────────────
   const submitExpense = (expenseData) => {
-    // Only allow Employees to submit expenses based on specific user request
-    if (currentUser.role !== 'Employee') {
-      return { success: false, error: 'Only Employees can submit expenses.' };
-    }
-
     const submitter = users.find(u => u.id === currentUser.id) || currentUser;
     const rule = approvalRules.find(r => r.company_id === currentUser.company_id);
     const { current_approver_id, sequence_step } = resolveFirstApprover(expenseData, submitter, users, rule);

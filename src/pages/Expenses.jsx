@@ -282,8 +282,18 @@ function ExpenseModal({ onClose }) {
               </div>
               <div className="form-group mb-0">
                 <label className="form-label">Currency *</label>
-                <input className="form-input" type="text" maxLength={3} required
-                  value={form.currency} onChange={e => set('currency', e.target.value.toUpperCase())} placeholder="USD" />
+                <select className="form-select" value={form.currency} onChange={e => set('currency', e.target.value)} required>
+                  <option value="USD">USD – US Dollar</option>
+                  <option value="EUR">EUR – Euro</option>
+                  <option value="GBP">GBP – British Pound</option>
+                  <option value="INR">INR – Indian Rupee</option>
+                  <option value="JPY">JPY – Japanese Yen</option>
+                  <option value="CAD">CAD – Canadian Dollar</option>
+                  <option value="AUD">AUD – Australian Dollar</option>
+                  <option value="SGD">SGD – Singapore Dollar</option>
+                  <option value="AED">AED – Dirham</option>
+                  <option value="CNY">CNY – Yuan</option>
+                </select>
               </div>
             </div>
 
