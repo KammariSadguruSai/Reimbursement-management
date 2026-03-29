@@ -2,7 +2,6 @@ import { useState, useRef, useEffect } from 'react';
 import { useStore } from '../store.jsx';
 import { useToast } from '../components/Toast.jsx';
 import { Plus, Upload, X, FileText, RefreshCw, Eye } from 'lucide-react';
-import { format } from 'date-fns';
 
 const CATEGORIES = ['Travel', 'Meals', 'Accommodation', 'Office Supplies', 'Utilities', 'Entertainment', 'Training', 'Medical', 'Other'];
 
@@ -168,7 +167,7 @@ function ExpenseDetailModal({ expense, onClose }) {
             </div>
             <div>
               <p className="text-xs text-muted">Date</p>
-              <p>{expense.expense_date ? format(new Date(expense.expense_date), 'dd MMM yyyy') : '—'}</p>
+              <p>{expense.expense_date ? new Date(expense.expense_date).toLocaleDateString() : '—'}</p>
             </div>
             <div>
               <p className="text-xs text-muted">Status</p>
@@ -206,7 +205,7 @@ function ExpenseDetailModal({ expense, onClose }) {
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
                       <span style={{ fontWeight: 500 }}>{h.approver_name || users.find(u => u.id === h.approver_id)?.name || 'Unknown'}</span>
-                      <span className="text-xs text-muted">{format(new Date(h.date), 'dd MMM, HH:mm')}</span>
+                      <span className="text-xs text-muted">{h.date ? new Date(h.date).toLocaleDateString() : ''}</span>
                     </div>
                     <span className={`text-xs ${h.action === 'Approved' ? 'text-success' : 'text-danger'}`}>{h.action}</span>
                     {h.comments && <p className="text-xs text-subtle mt-1">{h.comments}</p>}
@@ -441,7 +440,7 @@ export default function Expenses() {
                       {exp.currency} {Number(exp.amount).toFixed(2)}
                     </td>
                     <td className="text-subtle text-sm">
-                      {exp.expense_date ? format(new Date(exp.expense_date), 'dd MMM yyyy') : '—'}
+                      {exp.expense_date ? new Date(exp.expense_date).toLocaleDateString() : '—'}
                     </td>
                     <td>{statusBadge(exp.status)}</td>
                     <td className="text-subtle text-sm">

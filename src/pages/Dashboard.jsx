@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useStore } from '../store.jsx';
 import { Receipt, Clock, CheckCircle, XCircle, TrendingUp, Users, AlertCircle } from 'lucide-react';
-import { format } from 'date-fns';
 
 const statusBadge = (status) => {
   const map = { Pending: 'badge-warning', Approved: 'badge-success', Rejected: 'badge-danger' };

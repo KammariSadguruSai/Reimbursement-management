@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useStore } from '../store.jsx';
 import { useToast } from '../components/Toast.jsx';
 import { CheckCircle, XCircle, Clock, AlertCircle, RefreshCw } from 'lucide-react';
-import { format } from 'date-fns';
 
 const statusBadge = (status) => {
   const map = { Pending: 'badge-warning', Approved: 'badge-success', Rejected: 'badge-danger' };
@@ -73,7 +72,7 @@ function ApprovalModal({ expense, onClose }) {
               </div>
               <div>
                 <p className="text-xs text-muted mb-1">Date</p>
-                <p>{expense.expense_date ? format(new Date(expense.expense_date), 'dd MMM yyyy') : '—'}</p>
+                <p>{expense.expense_date ? new Date(expense.expense_date).toLocaleDateString() : '—'}</p>
               </div>
             </div>
             <div className="mt-4">
@@ -108,7 +107,7 @@ function ApprovalModal({ expense, onClose }) {
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
                       <span style={{ fontWeight: 500 }}>{h.approver_name || '—'}</span>
-                      <span className="text-xs text-muted">{format(new Date(h.date), 'dd MMM, HH:mm')}</span>
+                      <span className="text-xs text-muted">{h.date ? new Date(h.date).toLocaleDateString() : '—'}</span>
                     </div>
                     <span className={`text-xs ${h.action === 'Approved' ? 'text-success' : 'text-danger'}`}>
                       {h.action}
@@ -244,70 +243,70 @@ export default function Approvals() {
                       <td style={{ fontWeight: 600 }}>
                         {exp.currency} {Number(exp.amount).toFixed(2)}
                       </td>
-                      <td className="text-subtle text-sm">
-                        {exp.expense_date ? format(new Date(exp.expense_date), 'dd MMM yyyy') : '—'}
-                      </td>
-                      <td>
-                        <span className="badge badge-warning" style={{ fontSize: '0.7rem' }}>
-                          {isManagerStep ? 'Direct Manager' : `Step ${(exp.sequence_step || 0) + 1}`}
-                        </span>
-                        <div className="text-[10px] text-muted-foreground mt-1">
-                          Awaiting: {approver?.name || 'Admin'}
-                        </div>
-                      </td>
-                      <td>
-                        <button 
-                          className={`btn btn-sm ${canAction ? 'btn-primary' : 'btn-secondary'}`} 
-                          onClick={() => setSelected(exp)}
-                        >
-                          {canAction ? 'Review' : 'View'}
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+                    <td className="text-subtle text-sm">
+                      {exp.expense_date ? new Date(exp.expense_date).toLocaleDateString() : '—'}
+                    </td>
+                    <td>
+                      <span className="badge badge-warning" style={{ fontSize: '0.7rem' }}>
+                        {isManagerStep ? 'Direct Manager' : `Step ${(exp.sequence_step || 0) + 1}`}
+                      </span>
+                      <div className="text-[10px] text-muted-foreground mt-1">
+                        Awaiting: {approver?.name || 'Admin'}
+                      </div>
+                    </td>
+                    <td>
+                      <button 
+                        className={`btn btn-sm ${canAction ? 'btn-primary' : 'btn-secondary'}`} 
+                        onClick={() => setSelected(exp)}
+                      >
+                        {canAction ? 'Review' : 'View'}
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
 
-      {/* History */}
-      {processedHistory.length > 0 && (
-        <div className="card">
-          <div className="flex items-center justify-between mb-4">
-            <h3>Processed History</h3>
-            <div className="flex gap-2">
-              {['All', 'Approved', 'Rejected'].map(f => (
-                <button key={f} onClick={() => setHistoryFilter(f)}
-                  className={`btn btn-sm ${historyFilter === f ? 'btn-primary' : 'btn-secondary'}`}>
-                  {f}
-                </button>
-              ))}
-            </div>
+    {/* History */}
+    {processedHistory.length > 0 && (
+      <div className="card">
+        <div className="flex items-center justify-between mb-4">
+          <h3>Processed History</h3>
+          <div className="flex gap-2">
+            {['All', 'Approved', 'Rejected'].map(f => (
+              <button key={f} onClick={() => setHistoryFilter(f)}
+                className={`btn btn-sm ${historyFilter === f ? 'btn-primary' : 'btn-secondary'}`}>
+                {f}
+              </button>
+            ))}
           </div>
-          <div className="table-container">
-            <table>
-              <thead>
-                <tr>
-                  <th>Employee</th>
-                  <th>Description</th>
-                  <th>Amount</th>
-                  <th>Date</th>
-                  <th>Final Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredHistory.map(exp => {
-                  const submitter = users.find(u => u.id === exp.user_id);
-                  return (
-                    <tr key={exp.id}>
-                      <td style={{ fontWeight: 500 }}>{submitter?.name || '—'}</td>
-                      <td>{exp.description}</td>
-                      <td>{exp.currency} {Number(exp.amount).toFixed(2)}</td>
-                      <td className="text-subtle text-sm">
-                        {exp.expense_date ? format(new Date(exp.expense_date), 'dd MMM yyyy') : '—'}
-                      </td>
+        </div>
+        <div className="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Employee</th>
+                <th>Description</th>
+                <th>Amount</th>
+                <th>Date</th>
+                <th>Final Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredHistory.map(exp => {
+                const submitter = users.find(u => u.id === exp.user_id);
+                return (
+                  <tr key={exp.id}>
+                    <td style={{ fontWeight: 500 }}>{submitter?.name || '—'}</td>
+                    <td>{exp.description}</td>
+                    <td>{exp.currency} {Number(exp.amount).toFixed(2)}</td>
+                    <td className="text-subtle text-sm">
+                      {exp.expense_date ? new Date(exp.expense_date).toLocaleDateString() : '—'}
+                    </td>
                       <td>
                         <div className="flex items-center gap-2">
                            {statusBadge(exp.status)}
