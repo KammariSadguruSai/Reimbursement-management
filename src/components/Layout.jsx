@@ -16,7 +16,7 @@ export default function Layout() {
 
   const navItems = [
     { to: '/',          icon: <LayoutDashboard size={18} />, label: 'Dashboard',   end: true,  roles: null },
-    { to: '/expenses',  icon: <Receipt size={18} />,         label: 'My Expenses', end: false, roles: null },
+    { to: '/expenses',  icon: <Receipt size={18} />,         label: 'My Expenses', end: false, roles: ['Employee'] },
     { to: '/approvals', icon: <CheckSquare size={18} />,     label: 'Approvals',     end: false, roles: ['Admin', 'Manager'] },
     { to: '/team',      icon: <Users size={18} />,           label: 'Team',          end: false, roles: ['Admin', 'Manager'] },
     { to: '/settings',  icon: <SettingsIcon size={18} />,    label: 'Settings',      end: false, roles: ['Admin'] },

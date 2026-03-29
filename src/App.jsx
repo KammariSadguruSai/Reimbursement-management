@@ -26,8 +26,10 @@ function App() {
       <Route element={<Layout />}>
         <Route path="/" element={<Dashboard />} />
         
-        {/* Expenses: Everyone can submit their own expenses */}
-        <Route path="/expenses" element={<Expenses />} />
+        {/* Expenses: Only Employees can submit their own expenses */}
+        {currentUser.role === 'Employee' && (
+          <Route path="/expenses" element={<Expenses />} />
+        )}
 
         {/* Approvals: Admin and Manager */}
         {['Admin', 'Manager'].includes(currentUser.role) && (
