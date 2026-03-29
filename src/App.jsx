@@ -11,7 +11,26 @@ import SuperAdmin from './pages/SuperAdmin.jsx';
 import History from './pages/History.jsx';
 
 function App() {
-  const { currentUser } = useStore();
+  const { currentUser, dbState, companies } = useStore();
+
+  // Show a professional loading screen while the cloud DB initializes
+  if (dbState === 'syncing' && companies.length === 0) {
+    return (
+      <div className="auth-page flex-col gap-4">
+        <div style={{
+          width: 50, height: 50, borderRadius: '50%',
+          border: '3px solid var(--border)', borderTopColor: 'var(--primary)',
+          animation: 'spin 0.8s linear infinite'
+        }} />
+        <div className="text-center">
+            <h3 className="mb-2">Initializing Experience</h3>
+            <p className="text-xs text-subtle text-muted uppercase tracking-widest">Synchronizing with Cloud Edge...</p>
+        </div>
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    );
+  }
+
   const isSuperAdmin = currentUser?.id === 'u_admin_master';
 
   if (!currentUser) {
