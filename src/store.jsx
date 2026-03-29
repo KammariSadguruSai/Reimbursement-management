@@ -212,7 +212,7 @@ export function StoreProvider({ children }) {
     const userId = generateId('u');
 
     const newCompany = { id: companyId, name: companyName, default_currency: currency || 'USD' };
-    const newUser = { id: userId, name, email, password, role: 'Admin', company_id: companyId, manager_id: null, is_approved: 0 };
+    const newUser = { id: userId, name, email, password, role: 'Admin', company_id: companyId, manager_id: null, is_approved: 1 };
     const newRule = {
       company_id: companyId,
       sequence: [],

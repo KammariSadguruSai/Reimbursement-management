@@ -16,12 +16,11 @@ export default function Layout() {
 
   const navItems = [
     { to: '/',          icon: <LayoutDashboard size={18} />, label: 'Dashboard',   end: true,  roles: null },
-    { to: '/expenses',  icon: <Receipt size={18} />,         label: 'My Expenses', end: false, roles: ['Employee'] },
+    { to: '/expenses',  icon: <Receipt size={18} />,         label: 'My Expenses', end: false, roles: null },
     { to: '/approvals', icon: <CheckSquare size={18} />,     label: 'Approvals',     end: false, roles: ['Admin', 'Manager'] },
     { to: '/team',      icon: <Users size={18} />,           label: 'Team',          end: false, roles: ['Admin', 'Manager'] },
     { to: '/settings',  icon: <SettingsIcon size={18} />,    label: 'Settings',      end: false, roles: ['Admin'] },
-    isSuperAdmin && { to: '/super-admin', icon: <Shield size={18} />, label: 'Platform Console', end: false, roles: ['Admin'] },
-  ].filter(item => item && (!item.roles || item.roles.includes(currentUser.role)));
+  ].filter(item => !item.roles || item.roles.includes(currentUser.role));
 
   const initials = currentUser.name
     .split(' ')
