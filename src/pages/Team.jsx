@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useStore } from '../store.jsx';
 import { useToast } from '../components/Toast.jsx';
-import { UserPlus, X, Edit2, Check, ShieldAlert, User, Shield } from 'lucide-react';
+import { UserPlus, X, Edit2, Check, ShieldAlert, User, Shield, Trash2 } from 'lucide-react';
 
 const ROLES = ['Employee', 'Manager', 'Admin'];
 
@@ -269,15 +269,31 @@ export default function Team() {
                       <span className="badge badge-info">{getExpenseCount(u.id)}</span>
                     </td>
                     <td>
-                      {currentUser.role === 'Admin' ? (
-                        <button
-                          className="btn btn-icon btn-secondary"
-                          onClick={() => openEdit(u)}
-                          title="Edit role / manager"
-                        >
-                          <Edit2 size={15} />
-                        </button>
-                      ) : '—'}
+                      {currentUser.role === 'Admin' && u.id !== currentUser.id && (
+                        <div className="flex gap-2">
+                            <button
+                                className="btn btn-icon btn-secondary"
+                                onClick={() => openEdit(u)}
+                                title="Edit role / manager"
+                            >
+                                <Edit2 size={15} />
+                            </button>
+                            <button
+                                className="btn btn-icon btn-outline-danger"
+                                onClick={async () => {
+                                    if(confirm(`Remove ${u.name} from team?`)) {
+                                        const res = await deleteUser(u.id);
+                                        if (res.success) toast.success(`${u.name} removed from workspace.`);
+                                        else toast.error(res.error);
+                                    }
+                                }}
+                                title="Delete user"
+                            >
+                                <Trash2 size={15} />
+                            </button>
+                        </div>
+                      )}
+                      {u.id === currentUser.id && <span className="text-xs italic text-muted">You</span>}
                     </td>
                   </tr>
                 ))}

@@ -453,7 +453,7 @@ export function StoreProvider({ children }) {
     <StoreContext.Provider value={{
       currentUser, users, companies, expenses, approvalRules, fxCache, isSyncing, dbState,
       login, logout, signup, forgotPassword,
-      createUser, updateUser, approveUser,
+      createUser, updateUser, deleteUser, approveUser,
       submitExpense, approveExpense, rejectExpense, reopenExpense,
       updateRule,
       convertCurrency,
