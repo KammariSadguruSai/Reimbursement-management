@@ -23,7 +23,7 @@ export default function Layout() {
     { to: '/settings',  icon: <SettingsIcon size={18} />,    label: 'Settings',      end: false, roles: ['Admin'] },
   ].filter(item => !item.roles || item.roles.includes(currentUser.role));
 
-  const initials = currentUser.name
+  const initials = (currentUser?.name || 'User')
     .split(' ')
     .map(w => w[0])
     .slice(0, 2)

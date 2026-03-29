@@ -137,10 +137,10 @@ export function StoreProvider({ children }) {
       try {
         setDbState('syncing');
         // 1. Ensure Tables
-        await sql`CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, name TEXT, email TEXT UNIQUE, password TEXT, role TEXT, company_id TEXT, manager_id TEXT)`;
-        await sql`INSERT INTO users (id, name, email, password, role, company_id, manager_id)
-                  VALUES (${DEFAULT_ADMIN.id}, ${DEFAULT_ADMIN.name}, ${DEFAULT_ADMIN.email}, ${DEFAULT_ADMIN.password}, ${DEFAULT_ADMIN.role}, ${DEFAULT_ADMIN.company_id}, NULL)
-                  ON CONFLICT (email) DO NOTHING`;
+        await sql`CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, name TEXT, email TEXT UNIQUE, password TEXT, role TEXT, company_id TEXT, manager_id TEXT, is_approved INTEGER DEFAULT 1)`;
+        await sql`INSERT INTO users (id, name, email, password, role, company_id, manager_id, is_approved)
+                  VALUES (${DEFAULT_ADMIN.id}, ${DEFAULT_ADMIN.name}, ${DEFAULT_ADMIN.email}, ${DEFAULT_ADMIN.password}, ${DEFAULT_ADMIN.role}, ${DEFAULT_ADMIN.company_id}, NULL, 1)
+                  ON CONFLICT (email) DO UPDATE SET is_approved = 1`;
 
         await sql`CREATE TABLE IF NOT EXISTS companies (id TEXT PRIMARY KEY, name TEXT, default_currency TEXT)`;
         await sql`INSERT INTO companies (id, name, default_currency)
@@ -152,16 +152,16 @@ export function StoreProvider({ children }) {
 
         // 2. Fetch Latest State
         const [dbUsers, dbCos, dbExps, dbRules] = await Promise.all([
-          sql`SELECT * FROM users`,
-          sql`SELECT * FROM companies`,
-          sql`SELECT * FROM expenses`,
-          sql`SELECT * FROM rules`
+          sql`SELECT * FROM users`.catch(() => []),
+          sql`SELECT * FROM companies`.catch(() => []),
+          sql`SELECT * FROM expenses`.catch(() => []),
+          sql`SELECT * FROM rules`.catch(() => [])
         ]);
 
-        if (dbUsers.length > 0) setUsers(dbUsers);
-        if (dbCos.length > 0) setCompanies(dbCos);
-        if (dbExps.length > 0) setExpenses(dbExps.map(r => r.data));
-        if (dbRules.length > 0) setApprovalRules(dbRules.map(r => r.data));
+        if (Array.isArray(dbUsers) && dbUsers.length > 0) setUsers(dbUsers);
+        if (Array.isArray(dbCos) && dbCos.length > 0) setCompanies(dbCos);
+        if (Array.isArray(dbExps)) setExpenses(dbExps.map(r => r.data || r).filter(Boolean));
+        if (Array.isArray(dbRules)) setApprovalRules(dbRules.map(r => r.data || r).filter(Boolean));
 
         setDbState('success');
       } catch (e) {
