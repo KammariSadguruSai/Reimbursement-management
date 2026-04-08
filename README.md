@@ -1,6 +1,6 @@
 # 📊 ExpenseFlow
 
-![ExpenseFlow Hero](expenseflow_hero_1775669455391.png)
+
 
 ## 🚀 Overview
 **ExpenseFlow** is a modern, high-performance **Reimbursement Management System** designed to streamline how organizations handle employee expenses. Built with a focus on speed, reliability, and user experience, ExpenseFlow leverages OCR technology to automate data entry and provides a robust multi-level approval workflow.
